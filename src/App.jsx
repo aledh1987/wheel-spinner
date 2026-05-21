@@ -376,15 +376,22 @@ export default function App() {
       <Sidebar spinners={spinners} activeId={active.id} onSelect={setActiveId} onAdd={addSpinner} onDelete={deleteSpinner} onRename={(id,name)=>updateSpinner(id,{name})} collapsed={collapsed} onToggle={()=>setCollapsed(p=>!p)} theme={theme}/>
 
       <div style={{flex:1,display:"flex",flexDirection:"column",minWidth:0}}>
-        {/* Header */}
-        <div style={{padding:"10px 16px",borderBottom:"1px solid rgba(255,255,255,0.07)",display:"flex",alignItems:"center",gap:9,flexShrink:0}}>
-          {collapsed&&<button onClick={()=>setCollapsed(false)} style={{background:"none",border:"none",color:"rgba(255,255,255,0.45)",cursor:"pointer",fontSize:17,padding:"2px 4px"}}>☰</button>}
-          <h1 style={{margin:0,fontSize:"clamp(13px,2.5vw,18px)",fontWeight:800,background:theme.titleGrad,WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{active.name}</h1>
-          <button onClick={()=>setSoundOn(p=>!p)} title={soundOn?"Mute":"Unmute"} style={{background:"rgba(255,255,255,0.08)",border:"1px solid rgba(255,255,255,0.12)",color:"#fff",borderRadius:7,padding:"4px 8px",cursor:"pointer",fontSize:14,lineHeight:1,flexShrink:0}}>{soundOn?"🔊":"🔇"}</button>
-          <div style={{display:"flex",gap:4,alignItems:"center",flexShrink:0}}>
-            {THEMES.map(t=>(
-              <button key={t.id} onClick={()=>setThemeId(t.id)} title={t.name} style={{width:18,height:18,borderRadius:"50%",background:t.swatch,border:themeId===t.id?"2px solid #fff":"2px solid rgba(255,255,255,0.2)",cursor:"pointer",padding:0,transition:"transform 0.15s",transform:themeId===t.id?"scale(1.3)":"scale(1)",flexShrink:0}}/>
-            ))}
+        {/* Header — title is absolutely centred so it lines up with the wheel */}
+        <div style={{position:"relative",padding:"10px 16px",borderBottom:"1px solid rgba(255,255,255,0.07)",display:"flex",alignItems:"center",flexShrink:0,minHeight:46}}>
+          {/* Left: collapse toggle */}
+          <div style={{display:"flex",alignItems:"center",zIndex:1}}>
+            {collapsed&&<button onClick={()=>setCollapsed(false)} style={{background:"none",border:"none",color:"rgba(255,255,255,0.45)",cursor:"pointer",fontSize:17,padding:"2px 4px"}}>☰</button>}
+          </div>
+          {/* Centre: title absolutely positioned so it's always centred in the container */}
+          <h1 style={{position:"absolute",left:0,right:0,margin:0,textAlign:"center",fontSize:"clamp(13px,2.5vw,18px)",fontWeight:800,background:theme.titleGrad,WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",pointerEvents:"none",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",padding:"0 120px"}}>{active.name}</h1>
+          {/* Right: sound + themes */}
+          <div style={{display:"flex",alignItems:"center",gap:8,marginLeft:"auto",zIndex:1}}>
+            <button onClick={()=>setSoundOn(p=>!p)} title={soundOn?"Mute":"Unmute"} style={{background:"rgba(255,255,255,0.08)",border:"1px solid rgba(255,255,255,0.12)",color:"#fff",borderRadius:7,padding:"4px 8px",cursor:"pointer",fontSize:14,lineHeight:1}}>{soundOn?"🔊":"🔇"}</button>
+            <div style={{display:"flex",gap:4,alignItems:"center"}}>
+              {THEMES.map(t=>(
+                <button key={t.id} onClick={()=>setThemeId(t.id)} title={t.name} style={{width:18,height:18,borderRadius:"50%",background:t.swatch,border:themeId===t.id?"2px solid #fff":"2px solid rgba(255,255,255,0.2)",cursor:"pointer",padding:0,transition:"transform 0.15s",transform:themeId===t.id?"scale(1.3)":"scale(1)"}}/>
+              ))}
+            </div>
           </div>
         </div>
         <SpinnerView key={active.id} spinner={active} onUpdate={u=>updateSpinner(active.id,u)} theme={theme} soundRef={soundRef}/>
