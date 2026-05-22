@@ -71,6 +71,44 @@ function ConfettiCanvas({trigger,colors}) {
   return <canvas ref={ref} style={{position:"fixed",inset:0,pointerEvents:"none",zIndex:9999,width:"100%",height:"100%"}}/>;
 }
 
+function WinnerOverlay({ winner, color, onDismiss }) {
+  const [progress, setProgress] = useState(100);
+  useEffect(() => {
+    const iv = setInterval(() => setProgress(p => { if(p<=0){clearInterval(iv);onDismiss();return 0;} return p-1; }), 50);
+    return () => clearInterval(iv);
+  }, []); // eslint-disable-line
+
+  return (
+    <div onClick={onDismiss} style={{ position:"fixed",inset:0,zIndex:1000,display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(0,0,0,0.78)",backdropFilter:"blur(10px)",animation:"overlayIn 0.3s ease",cursor:"pointer" }}>
+      <div onClick={e=>e.stopPropagation()} className="winner-card" style={{ textAlign:"center",padding:"52px 64px",borderRadius:28,background:"rgba(255,255,255,0.06)",border:`1px solid ${color}66`,boxShadow:`0 0 100px ${color}55, 0 0 40px ${color}33, 0 32px 80px rgba(0,0,0,0.7)`,maxWidth:"min(560px,90vw)",width:"100%",position:"relative",overflow:"hidden",cursor:"default" }}>
+        {/* Background glow orb */}
+        <div style={{ position:"absolute",top:"50%",left:"50%",transform:"translate(-50%,-50%)",width:400,height:400,background:`radial-gradient(circle, ${color}2a 0%, transparent 65%)`,pointerEvents:"none" }}/>
+
+        {/* Sparkle ring */}
+        <div style={{ fontSize:32,marginBottom:12,animation:"spin 8s linear infinite",display:"inline-block" }}>✨</div>
+
+        <div style={{ fontSize:11,letterSpacing:4,textTransform:"uppercase",color:"rgba(255,255,255,0.5)",marginBottom:20 }}>🎉 We have a winner!</div>
+
+        <div style={{ fontSize:"clamp(32px,7vw,68px)",fontWeight:900,lineHeight:1.1,marginBottom:36,color:"#fff",textShadow:`0 0 30px ${color}, 0 0 60px ${color}88, 0 4px 20px rgba(0,0,0,0.5)`,wordBreak:"break-word",position:"relative" }}>
+          {winner}
+        </div>
+
+        {/* Dismiss button */}
+        <button onClick={onDismiss} style={{ background:`${color}33`,border:`1.5px solid ${color}88`,color:"#fff",borderRadius:100,padding:"12px 40px",cursor:"pointer",fontFamily:"inherit",fontSize:15,fontWeight:700,transition:"background 0.2s",marginBottom:16 }}>
+          Continue
+        </button>
+
+        <div style={{ fontSize:11,color:"rgba(255,255,255,0.25)",marginBottom:20 }}>or click anywhere to close</div>
+
+        {/* Auto-dismiss progress bar */}
+        <div style={{ position:"absolute",bottom:0,left:0,right:0,height:3,background:"rgba(255,255,255,0.08)",borderRadius:"0 0 28px 28px" }}>
+          <div style={{ height:"100%",width:`${progress}%`,background:color,borderRadius:"0 0 28px 28px",transition:"width 0.05s linear" }}/>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function Sidebar({spinners,activeId,onSelect,onAdd,onDelete,onRename,collapsed,onToggle,theme}) {
   const [editId,setEditId]=useState(null), [editName,setEditName]=useState("");
   if(collapsed) return(
@@ -119,6 +157,7 @@ function SpinnerView({spinner,onUpdate,theme,soundRef}) {
   const [editIdx,setEditIdx]=useState(null);
   const [editVal,setEditVal]=useState("");
   const [confTrigger,setConfTrigger]=useState(0);
+  const [resultColor,setResultColor]=useState(COLORS[0]);
   const [dragOver,setDragOver]=useState(null);
   const [draggingIdx,setDraggingIdx]=useState(null);
   const [showImport,setShowImport]=useState(false);
@@ -220,7 +259,7 @@ function SpinnerView({spinner,onUpdate,theme,soundRef}) {
       const n=((rotRef.current%(2*Math.PI))+2*Math.PI)%(2*Math.PI);
       const wIdx=Math.floor(((2*Math.PI-n)%(2*Math.PI))/slice)%opts.length;
       const winner=opts[wIdx];
-      setResult(winner); setTimeout(()=>setShowResult(true),80);
+      setResult(winner); setResultColor(spinColors[wIdx%spinColors.length]); setTimeout(()=>setShowResult(true),80);
       setConfTrigger(k=>k+1); if(soundRef.current)playWin();
       winIdxRef.current=wIdx;
       const gs=performance.now(); const GDUR=2400;
@@ -251,10 +290,33 @@ function SpinnerView({spinner,onUpdate,theme,soundRef}) {
       {options.length<2&&!spinning&&<p style={{color:"rgba(255,255,255,0.35)",fontSize:11,margin:0}}>Add at least 2 options to spin</p>}
 
       {showResult&&result&&(
-        <div className="result-pop" style={{background:`linear-gradient(135deg,${theme.soft},${theme.accent}22)`,border:`1px solid ${theme.border}`,borderRadius:14,padding:"12px 28px",textAlign:"center",backdropFilter:"blur(12px)"}}>
-          <div style={{fontSize:10,color:"rgba(255,255,255,0.45)",marginBottom:4,letterSpacing:2,textTransform:"uppercase"}}>🎉 Winner!</div>
-          <div style={{fontSize:20,fontWeight:800}}>{result}</div>
-          {removeWinner&&<div style={{fontSize:10,color:"rgba(255,255,255,0.35)",marginTop:4}}>Removed from the wheel</div>}
+        <div onClick={()=>setShowResult(false)} style={{position:"fixed",inset:0,zIndex:1000,background:"rgba(0,0,0,0.78)",backdropFilter:"blur(10px)",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",padding:16}}>
+          <div className="winner-modal" onClick={e=>e.stopPropagation()} style={{background:`radial-gradient(ellipse at top, ${resultColor}2a 0%, rgba(8,8,22,0.98) 65%)`,border:`2px solid ${resultColor}66`,borderRadius:28,padding:"44px 52px",textAlign:"center",maxWidth:460,width:"100%",boxShadow:`0 0 100px ${resultColor}33, 0 40px 80px rgba(0,0,0,0.7)`,cursor:"default",position:"relative"}}>
+            {/* Close button */}
+            <button onClick={()=>setShowResult(false)} style={{position:"absolute",top:14,right:16,background:"rgba(255,255,255,0.08)",border:"1px solid rgba(255,255,255,0.15)",color:"rgba(255,255,255,0.6)",borderRadius:"50%",width:30,height:30,cursor:"pointer",fontSize:16,lineHeight:1,display:"flex",alignItems:"center",justifyContent:"center"}}>×</button>
+            {/* Trophy */}
+            <div style={{fontSize:52,marginBottom:6,lineHeight:1}}>🏆</div>
+            <div style={{fontSize:11,letterSpacing:3,textTransform:"uppercase",color:"rgba(255,255,255,0.45)",marginBottom:14,fontWeight:600}}>Winner</div>
+            {/* Winner name — big gradient text using the slice colour */}
+            <div style={{fontSize:"clamp(30px,8vw,54px)",fontWeight:900,lineHeight:1.1,marginBottom:28,wordBreak:"break-word",background:`linear-gradient(135deg,#fff 0%,${resultColor} 100%)`,WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}}>
+              {result}
+            </div>
+            {removeWinner&&<p style={{fontSize:12,color:"rgba(255,255,255,0.38)",marginBottom:24,marginTop:-12}}>Removed from the wheel</p>}
+            {/* Action buttons */}
+            <div style={{display:"flex",gap:10,justifyContent:"center",flexWrap:"wrap"}}>
+              <button onClick={()=>setShowResult(false)} style={{background:`linear-gradient(135deg,${resultColor},${resultColor}bb)`,border:"none",color:"#fff",fontFamily:"inherit",fontSize:14,fontWeight:700,padding:"12px 30px",borderRadius:100,cursor:"pointer",boxShadow:`0 6px 24px ${resultColor}55`,transition:"transform 0.15s"}}
+                onMouseEnter={e=>e.currentTarget.style.transform="translateY(-2px)"}
+                onMouseLeave={e=>e.currentTarget.style.transform="translateY(0)"}>
+                Continue →
+              </button>
+              <button onClick={()=>{setShowResult(false);setTimeout(spin,120);}} disabled={spinner.options.length<2} style={{background:"rgba(255,255,255,0.1)",border:"1px solid rgba(255,255,255,0.2)",color:"#fff",fontFamily:"inherit",fontSize:14,fontWeight:700,padding:"12px 30px",borderRadius:100,cursor:"pointer",transition:"background 0.15s"}}
+                onMouseEnter={e=>e.currentTarget.style.background="rgba(255,255,255,0.18)"}
+                onMouseLeave={e=>e.currentTarget.style.background="rgba(255,255,255,0.1)"}>
+                🔄 Spin Again
+              </button>
+            </div>
+            <p style={{fontSize:11,color:"rgba(255,255,255,0.22)",marginTop:20,marginBottom:0}}>Click anywhere outside to close</p>
+          </div>
         </div>
       )}
 
@@ -429,6 +491,8 @@ export default function App() {
         .opt-input::placeholder{color:rgba(255,255,255,0.35);}
         .opt-input:focus{border-color:${theme.border};}
         .result-pop{animation:popIn 0.4s cubic-bezier(0.34,1.56,0.64,1) forwards;}
+        .winner-modal{animation:modalIn 0.45s cubic-bezier(0.34,1.56,0.64,1) forwards;}
+        @keyframes modalIn{from{opacity:0;transform:scale(0.75) translateY(24px)}to{opacity:1;transform:scale(1) translateY(0)}}
         @keyframes popIn{from{opacity:0;transform:scale(0.7) translateY(10px)}to{opacity:1;transform:scale(1) translateY(0)}}
         .sb-item:hover{background:rgba(255,255,255,0.05) !important;}
         .sb-item:hover .sb-btns{opacity:1 !important;}
