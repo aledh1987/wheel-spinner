@@ -177,6 +177,7 @@ function Sidebar({spinners,activeId,onSelect,onAdd,onDelete,onRename,collapsed,o
         <span style={{fontSize:10,fontWeight:700,letterSpacing:2,color:mode.ghost,textTransform:"uppercase"}}>Spinners</span>
         <button onClick={onToggle} style={{background:"none",border:"none",color:mode.ghost,cursor:"pointer",fontSize:12}}>◀</button>
       </div>
+      <button onClick={onAdd} style={{marginBottom:10,background:theme.soft,border:`1px solid ${theme.border}`,color:theme.muted,borderRadius:9,padding:"9px",cursor:"pointer",fontFamily:"inherit",fontSize:12,fontWeight:600,flexShrink:0}}>+ New Spinner</button>
       <div style={{flex:1,overflowY:"auto",display:"flex",flexDirection:"column",gap:3}}>
         {spinners.map(s=>(
           <div key={s.id} className="sb-item" onClick={()=>onSelect(s.id)} style={{borderRadius:9,padding:"8px 9px",cursor:"pointer",background:s.id===activeId?theme.soft:"transparent",border:`1px solid ${s.id===activeId?theme.border:"transparent"}`,transition:"all 0.15s",display:"flex",alignItems:"center",gap:6}}>
@@ -198,7 +199,6 @@ function Sidebar({spinners,activeId,onSelect,onAdd,onDelete,onRename,collapsed,o
           </div>
         ))}
       </div>
-      <button onClick={onAdd} style={{marginTop:10,background:theme.soft,border:`1px solid ${theme.border}`,color:theme.muted,borderRadius:9,padding:"9px",cursor:"pointer",fontFamily:"inherit",fontSize:12,fontWeight:600}}>+ New Spinner</button>
     </div>
   );
 }
@@ -489,9 +489,7 @@ export default function App() {
       <div style={{flex:1,display:"flex",flexDirection:"column",minWidth:0}}>
         {/* Header */}
         <div style={{position:"relative",padding:"10px 16px",borderBottom:`1px solid ${mode.divider}`,display:"flex",alignItems:"center",flexShrink:0,minHeight:46,transition:"border-color 0.3s"}}>
-          <div style={{display:"flex",alignItems:"center",zIndex:1}}>
-            {collapsed&&<button onClick={()=>setCollapsed(false)} style={{background:"none",border:"none",color:mode.faint,cursor:"pointer",fontSize:17,padding:"2px 4px"}}>☰</button>}
-          </div>
+          <div style={{display:"flex",alignItems:"center",zIndex:1}}></div>
           {/* Centred title */}
           <h1 style={{position:"absolute",left:0,right:0,margin:0,textAlign:"center",fontSize:"clamp(13px,2.5vw,18px)",fontWeight:800,background:mode.titleGrad,WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",pointerEvents:"none",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",padding:"0 160px"}}>{active.name}</h1>
           {/* Right controls */}
